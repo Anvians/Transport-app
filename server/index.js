@@ -42,6 +42,8 @@ const bookShipmentTool = tool(
     }
 );
 
+
+
 // Tool to check status
 const getStatusTool = tool(
     async () => {
@@ -129,6 +131,10 @@ app.post("/chat", async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 })
+
+app.get("/shipments", (req, res) => {
+  res.json(SHIPMENTS);
+});
 
 
 app.listen(3001, () => console.log(" Server running on port 3001"));

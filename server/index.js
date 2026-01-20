@@ -17,7 +17,30 @@ app.use(express.json())
 let SHIPMENTS = [];
 
 // 2. DEFINE THE LOGISTICS TOOL
+const bookShipmentTool = tool(
+    async ({ origin, destination, weight, item }) => {
+        // Generate a fake ID
+        const id = "SHIP-" + Math.floor(Math.random() * 1000);
 
+        // Save to "Database"
+        const newOrder = { id, origin, destination, weight, item, status: "Pending" };
+        SHIPMENTS.push(newOrder);
+
+        console.log(" NEW ORDER BOOKED:", newOrder); // Log it so you see it!
+
+        return ` Shipment Booked! ID: ${id}. We will pick up ${weight} of ${item} from ${origin}.`;
+    },
+    {
+        name: "book_shipment", // The AI looks for this name
+        description: "Book a new cargo shipment. Extracts origin, destination, weight, and item details.",
+        schema: z.object({
+            origin: z.string().describe("Where the shipment starts (e.g., Mumbai)"),
+            destination: z.string().describe("Where the shipment goes (e.g., Delhi)"),
+            weight: z.string().describe("Weight of the cargo (e.g., 50kg)"),
+            item: z.string().describe("What is being shipped (e.g., Steel, Fruits)"),
+        }),
+    }
+);
 
 // Tool to check status
 const getStatusTool = tool(
@@ -61,7 +84,7 @@ const model = new ChatGoogleGenerativeAI({
     temperature: 0.7
 })
 
-const modelWithTools = model.bindTools([ getStatusTool, calculateQuoteTool]);
+const modelWithTools = model.bindTools([bookShipmentTool, getStatusTool, calculateQuoteTool]);
 
 
 app.post("/chat", async (req, res) => {

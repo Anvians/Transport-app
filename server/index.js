@@ -6,6 +6,7 @@ import { tool } from '@langchain/core/tools'
 import { z } from 'zod'
 import dotenv from 'dotenv'
 import { HumanMessage, AIMessage } from '@langchain/core/messages'
+import mongoose, { now } from 'mongoose'
 
 dotenv.config()
 const app = express()
@@ -13,14 +14,28 @@ app.use(cors())
 
 app.use(express.json())
 
-// 1. DATABASE (Mock Shipping Database)
+mongoose.connect(process.env.MONGO_URI)
+.then(()=>console.log("MongoConnection successful"))
+.catch((e)=> console.log("Mongo connection error", e))
+
+
+const shipmentSchema = new mongoose.Schema({
+    origin: String,
+    distination: String,
+    weight: String,
+    item: String,
+    status:{type:String, default: "Pending"},
+    date: {type: Date, default: Date.now}
+})
+
+const shipment = mongoose.model("Shipment", shipmentSchema)
+
+// DATABASE (Mock Shipping Database)
 let SHIPMENTS = [];
 
 // 2. DEFINE THE LOGISTICS TOOL
 const bookShipmentTool = tool(
     async ({ origin, destination, weight, item }) => {
-        // Generate a fake ID
-        const id = "SHIP-" + Math.floor(Math.random() * 1000);
 
         // Save to "Database"
         const newOrder = { id, origin, destination, weight, item, status: "Pending" };
